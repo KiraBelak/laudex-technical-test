@@ -2,7 +2,7 @@
 
 ## 🌐 Links
 - [Demo en vivo](https://salmon-island-08ebe3310.4.azurestaticapps.net)
-- [Repositorio Frontend](https://github.com/KiraBelak/credit-appt)
+- [Repositorio Frontend](https://github.com/KiraBelak/credit-app)
 - [Repositorio Backend](https://github.com/KiraBelak/laudex-technical-test)
 - [Demo en vivo backend](https://apilaudex-bkc5adfja8ewhuc9.mexicocentral-01.azurewebsites.net)
 
