@@ -1,20 +1,19 @@
 package com.example.controllers;
 
-import com.example.dto.JwtResponseDTO;
-import com.example.dto.LoginRequestDTO;
-import com.example.dto.RegisterRequestDTO;
-import com.example.models.User;
-import com.example.security.JwtUtils;
+import com.example.security.JwtService;
 import com.example.services.UserService;
+import com.example.dto.AuthenticationRequest;
+import com.example.dto.AuthenticationResponse;
+import com.example.dto.RegisterRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,60 +24,41 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final JwtUtils jwtUtils;
+    private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authenticationManager, UserService userService, JwtUtils jwtUtils) {
+    public AuthController(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
-        this.jwtUtils = jwtUtils;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    public ResponseEntity<?> authenticate(@Valid @RequestBody AuthenticationRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String jwt = jwtService.generateToken(userDetails);
 
-        org.springframework.security.core.userdetails.User userDetails = (org.springframework.security.core.userdetails.User) authentication
-                .getPrincipal();
-
-        return ResponseEntity.ok(new JwtResponseDTO(
-                jwt,
-                null, // ID no disponible en UserDetails
-                userDetails.getUsername(),
-                null, // Email no disponible en UserDetails
-                userDetails.getAuthorities().stream()
-                        .map(item -> item.getAuthority())
-                        .collect(java.util.stream.Collectors.toSet())));
+            return ResponseEntity.ok(new AuthenticationResponse(jwt));
+        } catch (BadCredentialsException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Credenciales inválidas");
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDTO registerRequest) {
-        if (userService.existsByUsername(registerRequest.getUsername())) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        try {
+            UserDetails user = userService.register(request);
+            String jwt = jwtService.generateToken(user);
+            return ResponseEntity.ok(new AuthenticationResponse(jwt));
+        } catch (RuntimeException e) {
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Error: El nombre de usuario ya está en uso");
+            response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
-
-        if (userService.existsByEmail(registerRequest.getEmail())) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Error: El email ya está en uso");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        User user = new User();
-        user.setUsername(registerRequest.getUsername());
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(registerRequest.getPassword());
-        user.setFullName(registerRequest.getFullName());
-        user.setRoles(Collections.singleton("ROLE_USER"));
-
-        userService.createUser(user);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Usuario registrado exitosamente");
-        return ResponseEntity.ok(response);
     }
 }
