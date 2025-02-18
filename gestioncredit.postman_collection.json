@@ -1,0 +1,289 @@
+{
+	"info": {
+		"_postman_id": "dfe249f5-6634-4e35-883e-a2f325ddd6e2",
+		"name": "gestioncredit",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38815966"
+	},
+	"item": [
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"test_user\",\n    \"password\": \"password123\",\n    \"email\": \"test@example.com\",\n    \"fullName\": \"Test User\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/auth/register' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"username\": \"test_user\",\n    \"password\": \"password123\",\n    \"email\": \"test@example.com\",\n    \"fullName\": \"Test User\"\n}'"
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"kira\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST http://localhost:8080/auth/login \\\n-H \"Content-Type: application/json\" \\\n-d '{\n    \"username\": \"usuario1\",\n    \"password\": \"password123\"\n}'"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "solicitudes",
+			"item": [
+				{
+					"name": "obtener solicitud",
+					"request": {
+						"auth": {
+							"type": "jwt",
+							"jwt": [
+								{
+									"key": "algorithm",
+									"value": "HS256",
+									"type": "string"
+								},
+								{
+									"key": "isSecretBase64Encoded",
+									"value": false,
+									"type": "boolean"
+								},
+								{
+									"key": "payload",
+									"value": "{}",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								},
+								{
+									"key": "headerPrefix",
+									"value": "Bearer",
+									"type": "string"
+								},
+								{
+									"key": "queryParamKey",
+									"value": "token",
+									"type": "string"
+								},
+								{
+									"key": "header",
+									"value": "{}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/solicitudes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"solicitudes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "editar solicitud",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer tu_token_jwt_aqui"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Nuevo Nombre\",\n    \"lastName\": \"Nuevo Apellido\",\n    \"email\": \"nuevo@email.com\",\n    \"city\": \"Nueva Ciudad\",\n    \"amount\": 5000.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/solicitudes/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"solicitudes",
+								"3"
+							]
+						},
+						"description": "Generated from cURL: curl --location --request PUT 'http://localhost:8080/solicitudes/3' \\\n--header 'Authorization: Bearer tu_token_jwt_aqui' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{\n    \"name\": \"Nuevo Nombre\",\n    \"lastName\": \"Nuevo Apellido\",\n    \"email\": \"nuevo@email.com\",\n    \"city\": \"Nueva Ciudad\",\n    \"amount\": 5000.00\n}'"
+					},
+					"response": []
+				},
+				{
+					"name": "actualizar status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJraXJhIiwiaWF0IjoxNzM5OTE1MzQxLCJleHAiOjE3NDAwMDE3NDF9.b9iy_bLoo4GqlGvICEUk2ilSQ17WBQc3cYV31rbe7lg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/solicitudes/3/status?status=APPROVED",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"solicitudes",
+								"3",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "APPROVED"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eliminar solicitud",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer el_token_que_obtuviste_del_login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/solicitudes/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"solicitudes",
+								"3"
+							]
+						},
+						"description": "Generated from cURL: curl --location --request DELETE 'http://localhost:8080/solicitudes/3' \\\n--header 'Authorization: Bearer el_token_que_obtuviste_del_login'"
+					},
+					"response": []
+				},
+				{
+					"name": "crear solicitud",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJraXJhIiwiaWF0IjoxNzM5ODU2MTA0LCJleHAiOjE3Mzk5NDI1MDR9.LA3UEaYfuWmZI6Y20NRpXSlLv3IQKqvQC8q29brQZxNPUPv468QFauYOSFkO_aqFD7I56XKd6JOmq1LecxVIMg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"name\": \"Juan\",\n    \"lastName\": \"Rodriguez\",\n    \"email\": \"juan.rdz@example.com\",\n    \"city\": \"Chihuahua\",\n    \"amount\": 5000.00,\n    \"status\":\"Pendiente\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/solicitudes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"solicitudes"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
