@@ -1,15 +1,14 @@
 package com.example.services;
 
+import com.example.dto.RegisterRequest;
 import com.example.models.User;
 import com.example.repositories.UserRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -27,17 +26,32 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role))
-                        .collect(Collectors.toList()));
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .roles(user.getRoles().toArray(new String[0]))
+                .build();
     }
 
-    public User createUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    public UserDetails register(RegisterRequest request) {
+        if (existsByUsername(request.getUsername())) {
+            throw new RuntimeException("El nombre de usuario ya está en uso");
+        }
+
+        if (existsByEmail(request.getEmail())) {
+            throw new RuntimeException("El email ya está en uso");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFullName(request.getFullName());
+        user.setRoles(Collections.singleton("USER"));
+
+        userRepository.save(user);
+
+        return loadUserByUsername(user.getUsername());
     }
 
     public boolean existsByUsername(String username) {
