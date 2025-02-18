@@ -2,6 +2,8 @@ package com.example.services;
 
 import com.example.models.Request;
 import com.example.repositories.RequestRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,10 @@ public class RequestService {
 
     public List<Request> getAll() {
         return requestRepository.findAll();
+    }
+
+    public Page<Request> getAllPaginated(Pageable pageable) {
+        return requestRepository.findAll(pageable);
     }
 
     public Optional<Request> getById(Long id) {

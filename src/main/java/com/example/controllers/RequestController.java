@@ -7,6 +7,9 @@ import com.example.models.Request;
 import com.example.models.RequestStatus;
 import com.example.services.RequestService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -30,12 +33,31 @@ public class RequestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RequestResponseDTO>> list() {
-        List<RequestResponseDTO> requests = requestService.getAll()
+    public ResponseEntity<Map<String, Object>> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDir);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<Request> pageResult = requestService.getAllPaginated(pageRequest);
+        List<RequestResponseDTO> requests = pageResult.getContent()
                 .stream()
                 .map(requestMapper::toResponseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(requests);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", requests);
+        response.put("currentPage", pageResult.getNumber());
+        response.put("totalItems", pageResult.getTotalElements());
+        response.put("totalPages", pageResult.getTotalPages());
+        response.put("size", pageResult.getSize());
+        response.put("hasNext", pageResult.hasNext());
+        response.put("hasPrevious", pageResult.hasPrevious());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

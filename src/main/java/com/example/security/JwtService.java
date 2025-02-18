@@ -17,23 +17,28 @@ import java.util.Map;
 import java.util.function.Function;
 import jakarta.annotation.PostConstruct;
 import java.util.Base64;
+import javax.crypto.SecretKey;
+import io.jsonwebtoken.io.Decoders;
 
 @Service
 public class JwtService {
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 
-    private Key key;
+    private SecretKey key;
 
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
 
+    @Value("${app.jwt.secret}")
+    private String secretKey;
+
     @PostConstruct
     public void init() {
         try {
-            key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-            String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-            logger.info("JWT key initialized successfully. Save this key in your application.properties: {}",
-                    encodedKey);
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+            key = Keys.hmacShaKeyFor(keyBytes);
+            logger.info("JWT key initialized successfully from application.properties");
+            logger.debug("Key first 10 chars: {}", secretKey.substring(0, 10));
         } catch (Exception e) {
             logger.error("Error initializing JWT key: {}", e.getMessage());
             throw new IllegalStateException("Could not initialize JWT key", e);
@@ -60,9 +65,9 @@ public class JwtService {
                     .setSubject(userDetails.getUsername())
                     .setIssuedAt(new Date(System.currentTimeMillis()))
                     .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                    .signWith(key, SignatureAlgorithm.HS256)
+                    .signWith(key)
                     .compact();
-            logger.debug("Generated token for user: {}", userDetails.getUsername());
+            logger.debug("Generated token successfully for user: {}", userDetails.getUsername());
             return token;
         } catch (Exception e) {
             logger.error("Error generating token: {}", e.getMessage());
@@ -74,7 +79,7 @@ public class JwtService {
         try {
             final String username = extractUsername(token);
             boolean isValid = (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-            logger.debug("Token validation for user {}: {}", username, isValid);
+            logger.debug("Token validation result for user {}: {}", username, isValid);
             return isValid;
         } catch (Exception e) {
             logger.error("Error validating token: {}", e.getMessage());
@@ -83,10 +88,7 @@ public class JwtService {
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiration = extractExpiration(token);
-        boolean isExpired = expiration.before(new Date());
-        logger.debug("Token expiration check - Expiration: {}, Is Expired: {}", expiration, isExpired);
-        return isExpired;
+        return extractExpiration(token).before(new Date());
     }
 
     private Date extractExpiration(String token) {
@@ -100,7 +102,7 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            logger.debug("Successfully extracted claims from token");
+            logger.debug("Claims extracted successfully from token");
             return claims;
         } catch (Exception e) {
             logger.error("Error extracting claims from token: {}", e.getMessage());
